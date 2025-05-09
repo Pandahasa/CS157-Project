@@ -19,6 +19,7 @@ public class DatabaseInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         logger.info("Attempting to initialize database tables using JDBC");
 
+        // SQL to create the Students table
         String createStudentsTableSQL = """
             CREATE TABLE IF NOT EXISTS Students (
                 student_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -28,6 +29,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             );
         """;
 
+        // SQL to create the Courses table
         String createCoursesTableSQL = """
             CREATE TABLE IF NOT EXISTS Courses (
                 course_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -38,27 +40,34 @@ public class DatabaseInitializer implements CommandLineRunner {
             );
         """;
 
+        // SQL to create the Instructors table
+        String createInstructorsTableSQL = """
+            CREATE TABLE IF NOT EXISTS Instructors (
+                instructor_id INT AUTO_INCREMENT PRIMARY KEY,
+                first_name VARCHAR(255) NOT NULL,
+                last_name VARCHAR(255) NOT NULL,
+                department VARCHAR(100) NOT NULL
+            );
+        """;
+
+        // SQL to create the Enrollment table
+        // Doesn't violate BCNF because instructor assignment is per enrollment 
+        // and not dependent on the course or student.
         String createEnrollmentTableSQL = """
             CREATE TABLE IF NOT EXISTS Enrollment (
                 enrollment_id INT AUTO_INCREMENT PRIMARY KEY,
                 student_id INT NOT NULL,
                 course_id INT NOT NULL,
                 semester VARCHAR(50) NOT NULL,
+                grade VARCHAR(5), -- Grade can be null initially
+                instructor_id INT, -- Link to the instructor for this specific enrollment
                 FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
                 FOREIGN KEY (course_id) REFERENCES Courses(course_id) ON DELETE CASCADE,
+                FOREIGN KEY (instructor_id) REFERENCES Instructors(instructor_id) ON DELETE SET NULL, -- If instructor is deleted, set instructor_id in enrollment to NULL
                 UNIQUE KEY unique_enrollment (student_id, course_id, semester)
             );
         """;
 
-        // For Grades, enrollment_id is the PK to enforce 1:1 with Enrollment.
-        // course_id is not needed here as it's derivable from enrollment_id via the Enrollment table.
-        String createGradesTableSQL = """
-            CREATE TABLE IF NOT EXISTS Grades (
-                enrollment_id INT PRIMARY KEY,
-                grade VARCHAR(5) NOT NULL,
-                FOREIGN KEY (enrollment_id) REFERENCES Enrollment(enrollment_id) ON DELETE CASCADE
-            );
-        """;
 
         try {
             logger.info("Creating Students table...");
@@ -69,19 +78,18 @@ public class DatabaseInitializer implements CommandLineRunner {
             jdbcTemplate.execute(createCoursesTableSQL);
             logger.info("Courses table created or already exists.");
 
+            logger.info("Creating Instructors table...");
+            jdbcTemplate.execute(createInstructorsTableSQL);
+            logger.info("Instructors table created or already exists.");
+
             logger.info("Creating Enrollment table...");
             jdbcTemplate.execute(createEnrollmentTableSQL);
             logger.info("Enrollment table created or already exists.");
 
-            logger.info("Creating Grades table...");
-            jdbcTemplate.execute(createGradesTableSQL);
-            logger.info("Grades table created or already exists.");
 
             logger.info("Database table initialization complete.");
         } catch (Exception e) {
             logger.error("Error during database table initialization: ", e);
-            // Optionally, rethrow or handle more gracefully depending on application needs
-            // throw new RuntimeException("Failed to initialize database schema", e);
         }
     }
 }
