@@ -1,9 +1,19 @@
 package com.example.springboot.model;
 
 public class Student {
+    private Integer studentId; 
     private String firstName;
     private String lastName;
     private String major;
+
+    // Getters and setters
+    public Integer getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(Integer studentId) {
+        this.studentId = studentId;
+    }
 
     public String getFirstName() {
         return firstName;

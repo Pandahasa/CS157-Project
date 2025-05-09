@@ -1,10 +1,20 @@
 package com.example.springboot.model;
 
 public class Course {
+    private Integer courseId; 
     private String title;
     private String department;
     private String description;
-    private int credits;
+    private Integer credits;
+
+    // Getters and setters
+    public Integer getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(Integer courseId) {
+        this.courseId = courseId;
+    }
 
     public String getTitle() {
         return title;
@@ -30,11 +40,11 @@ public class Course {
         this.description = description;
     }
 
-    public int getCredits() {
+    public Integer getCredits() {
         return credits;
     }
 
-    public void setCredits(int credits) {
+    public void setCredits(Integer credits) {
         this.credits = credits;
     }
 }

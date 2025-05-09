@@ -1,117 +1,127 @@
 "use client";
-import React from "react"
-import CourseTable from "@/components/createdUI/courseUI/courseTable.jsx"
-import { Input } from "@/components/ui/input"
-import { useState, useEffect } from "react"
-import AddCourseDialog from "@/components/createdUI/courseUI/addCourseDialog"
-import { Button } from "@/components/ui/button"
+import React, { useState, useEffect } from "react";
+import CourseTable from "@/components/createdUI/courseUI/courseTable.jsx";
+import { Input } from "@/components/ui/input";
+import AddCourseDialog from "@/components/createdUI/courseUI/addCourseDialog";
+import { Button } from "@/components/ui/button";
+import { toast } from 'sonner';
 
-//These are the columns that will be made according to the database.
+// Columns for the CourseTable
 const columns = [
   {
-    accessorKey: "courseID",
+    accessorKey: "courseId", // Matches backend model
     header: "CourseID",
-    cell: (info) => info.getValue(),
-  },  
+  },
   {
     accessorKey: "title",
     header: "Course Title",
-    cell: (info) => info.getValue(),
   },
   {
     accessorKey: "department",
     header: "Department",
-    cell: (info) => info.getValue(),
   },
   {
     accessorKey: "credits",
-    header: "Course Credits",
-    cell: (info) => <span className="">{info.getValue()}</span>,
+    header: "Credits",
   },
   {
     accessorKey: "description",
-    header: "Course Description",
-    cell: (info) => <span className="text-blue-500">{info.getValue()}</span>,
+    header: "Description",
+    cell: (info) => (
+      <div className="truncate w-60" title={info.getValue()}>
+        {info.getValue()}
+      </div>
+    ),
   },
-]
+];
 
+export default function CoursePage() {
+  // Holds all courses fetched from the backend
+  const [allCourses, setAllCourses] = useState([]);
+  // Data for the courses currently displayed in the table
+  const [courses, setCourses] = useState([]);
+  // Input query for searching courses
+  const [searchTerm, setSearchTerm] = useState("");
+  // Debounced search term to reduce re-renders
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  // Triggers a table refresh when the database is updated
+  const [refreshTable, setRefreshTable] = useState(false);
+  // Holds the selected course for potential edit/delete operations
+  const [selectedCourse, setSelectedCourse] = useState(null);
 
-const tempCourses = [
-  { courseID: 101001, title: "CS146", department: "Computer Science", credits: 2, description: "random mumbo,random mumbo,random mumbo,random mumbo,random mumbo,random mumbo,random mumbo,random mumbo,random mumbo,random mumbo,random mumbo,random mumbo,random mumbo,random mumbo,random mumbo," },
-  { courseID: 303230, title: "CS149", department: "Computer Science", credits: 4, description: "random mumbo" },
-  { courseID: 201230, title: "CS157", department: "Engineering", credits: 2, description: "random mumbo" },
-  { courseID: 201430, title: "CMPE130", department: "Computer Science", credits: 3, description: "random mumbo" },
-]
-
-export default function CoursePage(){
-
-    //Variable that holds all the courses.
-    const [allCourses, setAllCourses] = useState(tempCourses);
-
-    //Table data of the courses currently in database.
-    const [courses, setCourses] = useState(allCourses);
-
-    //Input query for courseID
-    const [inputCourseID, setInputCourseID] = useState("");
-
-    //The debounced courseID search bar value
-    const [debouncedInputCourseID, setDebouncedInputCourseID] = useState("");
-
-    //This means the database has been updated and we need to refresh table.
-    const [refreshTable, setRefreshTable] = useState(false);
-
-    useEffect(() => {
-
-        async function fetchCourses() {
-            const res = await fetch("/api/courses"); // Your API route or Spring Boot backend
-            const data = await res.json();
-            setAllCourses(data);
+  // Fetch all courses from the backend
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const res = await fetch("http://localhost:8080/api/courses");
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("Failed to fetch courses:", res.status, errorText);
+          toast.error(`Failed to fetch courses: ${res.status}`);
+          setAllCourses([]);
+          setCourses([]);
+          return;
         }
+        const data = await res.json();
+        setAllCourses(data);
+        setCourses(data);
+      } catch (error) {
+        console.error("Network error fetching courses:", error);
+        toast.error("Network error fetching courses.");
+        setAllCourses([]);
+        setCourses([]);
+      }
+    }
+    fetchCourses();
+  }, [refreshTable]);
 
-    fetchCourses(); 
-    }, [refreshTable]);
-
-    //Filters the course array based off the search query given.
-    useEffect(() => {
-
-        //Will have to have an api call here.
-
-
-        let filteredCourses = allCourses.filter(course =>{
-
-            //If nothing is inputted, return all the courses.
-            if(inputCourseID == "") return true;
-
-            //Searches course based on the query (courseID).
-            if(course.courseID.toString().startsWith(debouncedInputCourseID.toLowerCase())) return true;
-        })
-
-        setCourses(filteredCourses);
-    }, [debouncedInputCourseID]);
-
-
-    //Debounced search courseID, this makes searching less laggy since less updates.
-    useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedInputCourseID(inputCourseID);
+  // Debounce the search term input
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
     }, 500);
-    return () => clearTimeout(timeout);
-  }, [inputCourseID]);
+    return () => clearTimeout(timerId);
+  }, [searchTerm]);
 
-    
+  // Filter courses based on the debounced search term
+  useEffect(() => {
+    const lowercasedFilter = debouncedSearchTerm.toLowerCase();
+    const filteredData = allCourses.filter(course => {
+      if (debouncedSearchTerm === "") return true;
+      return (
+        (course.title && course.title.toLowerCase().includes(lowercasedFilter)) ||
+        (course.courseId && course.courseId.toString().toLowerCase().includes(lowercasedFilter)) ||
+        (course.department && course.department.toLowerCase().includes(lowercasedFilter))
+      );
+    });
+    setCourses(filteredData);
+  }, [debouncedSearchTerm, allCourses]);
 
-
-
-    return(<>
-        <div>
-            {/*Query for courseID. */}
-            <div className = "flex">
-              <Input placeholder = "Enter courseID:" value = {inputCourseID} onChange = {(e) => setInputCourseID(e.target.value)}></Input>
-              <Button onClick = {() => setInputCourseID("")}>Clear</Button>
-            </div>
-
-            <CourseTable data = {courses} columns = {columns} refreshTable = {refreshTable} setRefreshTable = {setRefreshTable}></CourseTable>
-            <AddCourseDialog refreshTable = {refreshTable} setRefreshTable={setRefreshTable}></AddCourseDialog>
+  return (
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-2 w-full">
+          <Input
+            placeholder="Search by Title, ID, or Department..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-grow"
+          />
+          <Button onClick={() => setSearchTerm("")} variant="outline">Clear</Button>
         </div>
-    </>);
+      </div>
+
+      <CourseTable
+        data={courses}
+        columns={columns}
+        setSelectedRow={setSelectedCourse} // For handling row selection for edit/delete
+        refreshTable={refreshTable}
+        setRefreshTable={setRefreshTable}
+      />
+
+      <div className="mt-4">
+        <AddCourseDialog refreshTable={refreshTable} setRefreshTable={setRefreshTable} />
+      </div>
+    </div>
+  );
 }

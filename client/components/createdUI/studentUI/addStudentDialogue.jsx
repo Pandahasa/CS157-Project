@@ -24,7 +24,7 @@ export default function StudentDialogue({refreshTable, setRefreshTable}) {
 
 
   //Adds student to database.
-  const submitAddStudent = () => {
+  const submitAddStudent = async () => {
     const randomVar = {firstName, lastName, studentID, major}
     console.log(randomVar);
 
@@ -45,30 +45,41 @@ export default function StudentDialogue({refreshTable, setRefreshTable}) {
 
         //Exit out and not create into sql database.
         return;
-    }else{
-        toast.custom(() => (
-            <div className="bg-green-500 text-white p-5 rounded shadow-lg">
-                ✅ Student created successfully!
-            </div>
-        ),{ duration: 2000,});
     }
-
-
-    //INPUT SQL LOGIC HERE.
-
-
-
-    //Resets useStates to be empty.
-    //Reset states once submitted.
-    setFirstName("");
-    setLastName(""); 
-    setMajor(""); 
-    
-    //Forces a refresh of the newly changes database.
-    setRefreshTable(!refreshTable);
-
-
-  }
+    try {
+        const response = await fetch("http://localhost:8080/api/students", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ firstName, lastName, major })
+        })
+  
+        if (response.ok) {
+          toast.custom(() => (
+            <div className="bg-green-500 text-white p-5 rounded shadow-lg">
+              ✅ Student created successfully!
+            </div>
+          ), { duration: 2000 })
+        } else {
+          const errorData = await response.text()
+          toast.custom(() => (
+            <div className="bg-red-500 text-white p-5 rounded shadow-lg">
+              ❌ Error creating student: {errorData}
+            </div>
+          ), { duration: 2000 })
+        }
+      } catch (error) {
+        toast.custom(() => (
+          <div className="bg-red-500 text-white p-5 rounded shadow-lg">
+            ❌ Network error: {error.message}
+          </div>
+        ), { duration: 2000 })
+      }
+  
+      setFirstName("")
+      setLastName("")
+      setMajor("")
+      setRefreshTable(!refreshTable)
+    }
 
   return (
     <>

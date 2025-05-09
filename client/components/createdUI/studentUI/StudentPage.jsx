@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button"
 //These are the columns that will be made according to the database.
 const columns = [
   {
-    accessorKey: "studentID",
+    accessorKey: "studentId",
     header: "StudentID",
     cell: (info) => info.getValue(),
-  },  
+  },
   {
     accessorKey: "firstName",
     header: "First Name",
@@ -28,23 +28,15 @@ const columns = [
     header: "Major",
     cell: (info) => <span className="text-blue-500">{info.getValue()}</span>,
   },
-]
-
-
-const tempstudents = [
-  { studentID: 101001, firstName: "Alice", lastName: "A", major: "Computer Science" },
-  { studentID: 303230, firstName: "Bob", lastName: "B", major: "Biology" },
-  { studentID: 201230, firstName: "Charlie", lastName: "C", major: "Pre-Med" },
-  { studentID: 201430, firstName: "Jeff", lastName: "J", major: "Business" },
-]
+];
 
 export default function PageWrap(){
 
-    //Variable that holds all the students.
-    const [allStudents, setAllStudents] = useState(tempstudents);
+    //Variable that holds all the students fetched from the backend.
+    const [allStudents, setAllStudents] = useState([]); 
 
-    //Table data of the students currently in database.
-    const [students, setStudents] = useState(allStudents);
+    //Table data of the students currently displayed
+    const [students, setStudents] = useState([]); 
 
     //Input query for studentID
     const [inputStudentID, setInputStudentID] = useState("");
@@ -55,43 +47,53 @@ export default function PageWrap(){
     //This means the database has been updated and we need to refresh table.
     const [refreshTable, setRefreshTable] = useState(false);
 
+    // Fetch all students from the backend when the component mounts or refreshTable changes
     useEffect(() => {
-
         async function fetchStudents() {
-            const res = await fetch("/api/students"); // Your API route or Spring Boot backend
-            const data = await res.json();
-            setAllStudents(data);
+            try {
+                const res = await fetch("http://localhost:8080/api/students"); // Full backend URL
+                if (!res.ok) {
+                    // Handle HTTP errors like 404 or 500
+                    console.error("Failed to fetch students:", res.status, await res.text());
+                    setAllStudents([]); // Set to empty array on error
+                    setStudents([]);
+                    return;
+                }
+                const data = await res.json();
+                setAllStudents(data);
+                setStudents(data); // Initialize displayed students with all students
+            } catch (error) {
+                // Handle network errors
+                console.error("Network error fetching students:", error);
+                setAllStudents([]); // Set to empty array on error
+                setStudents([]);
+            }
         }
 
-    fetchStudents(); 
-    }, [refreshTable]);
+        fetchStudents();
+    }, [refreshTable]); // Dependency array includes refreshTable
 
     //Filters the student array based off the search query given.
     useEffect(() => {
-
-        //Will have to have an api call here.
-
-
         let filteredStudents = allStudents.filter(student =>{
-
             //If nothing is inputted, return all the students.
-            if(inputStudentID == "") return true;
+            if(debouncedInputStudentID === "") return true;
 
-            //Searches student based on the query (studentID).
-            if(student.studentID.toString().startsWith(debouncedInputStudentID.toLowerCase())) return true;
+            // Ensure student.studentID is not null or undefined before calling toString()
+            if(student.studentID && student.studentID.toString().startsWith(debouncedInputStudentID.toLowerCase())) return true;
+            return false; // Explicitly return false if conditions are not met
         })
-
         setStudents(filteredStudents);
-    }, [debouncedInputStudentID]);
+    }, [debouncedInputStudentID, allStudents]); // Also re-filter when allStudents changes
 
 
     //Debounced search studentID, this makes searching less laggy since less updates.
     useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedInputStudentID(inputStudentID);
-    }, 500);
-    return () => clearTimeout(timeout);
-  }, [inputStudentID]);
+        const timeout = setTimeout(() => {
+          setDebouncedInputStudentID(inputStudentID);
+        }, 500);
+        return () => clearTimeout(timeout);
+    }, [inputStudentID]);
 
 
     return(<>
@@ -99,7 +101,7 @@ export default function PageWrap(){
             {/*Query for studentID. */}
             <div className = "flex">
               <Input placeholder = "Enter studentID:" value = {inputStudentID} onChange = {(e) => setInputStudentID(e.target.value)}></Input>
-              <Button onClick = {() => setInputStudentID("")}>Clear</Button>
+              <Button onClick = {() => {setInputStudentID(""); setDebouncedInputStudentID("");}}>Clear</Button>
             </div>
 
             <StudentTable data = {students} columns = {columns} refreshTable = {refreshTable} setRefreshTable = {setRefreshTable}></StudentTable>

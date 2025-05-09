@@ -27,9 +27,9 @@ export default function addCourseDialog({refreshTable, setRefreshTable}) {
 
 
   //Submit changes to database
-  const submitAddCourse = () => {
-    const randomVar = {title, department, courseID, credits, description}
-    console.log(randomVar);
+  const submitAddCourse = async () => { // Made function async
+    // const randomVar = {title, department, courseID, credits, description} // courseID not needed here
+    // console.log(randomVar);
 
     //Checks if valid input or do not continue.
     if(!title || !department || !credits || !description){
@@ -39,33 +39,57 @@ export default function addCourseDialog({refreshTable, setRefreshTable}) {
             </div>
         ),{ duration: 2000,});
 
-        //Resets useStates to be empty.
-        setTitle("");
-        setDepartment(""); 
-        setCredits(null); 
-        setDescription(""); 
-
         //Exit out and not create into sql database.
         return;
-    }else{
+    }
+    try {
+        const creditsAsNumber = parseInt(credits, 10);
+        if (isNaN(creditsAsNumber)) {
+            toast.custom(() => (
+                <div className="bg-red-500 text-white p-5 rounded shadow-lg">
+                    Credits must be a valid number.
+                </div>
+            ),{ duration: 2000,});
+            return;
+        }
+
+        const response = await fetch("http://localhost:8080/api/courses", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, department, credits: creditsAsNumber, description })
+        });
+
+        if (response.ok) {
+            toast.custom(() => (
+                <div className="bg-green-500 text-white p-5 rounded shadow-lg">
+                    ✅ Course created successfully!
+                </div>
+            ),{ duration: 2000,});
+
+            //Resets useStates to be empty.
+            setTitle("");
+            setDepartment("");
+            setCredits("");
+            setDescription("");
+
+            //Forces a refresh of the newly changes database.
+            setRefreshTable(!refreshTable);
+            // Dialog will close due to DialogClose wrapper on submit button
+        } else {
+            const errorData = await response.text();
+            toast.custom(() => (
+                <div className="bg-red-500 text-white p-5 rounded shadow-lg">
+                    ❌ Error creating course: {response.status} {errorData}
+                </div>
+            ),{ duration: 2000,});
+        }
+    } catch (error) {
         toast.custom(() => (
-            <div className="bg-green-500 text-white p-5 rounded shadow-lg">
-                ✅ Course created successfully!
+            <div className="bg-red-500 text-white p-5 rounded shadow-lg">
+                ❌ Network error: {error.message}
             </div>
         ),{ duration: 2000,});
     }
-
-
-    //INPUT SQL LOGIC HERE.
-
-    //Resets useStates to be empty.
-    setTitle("");
-    setDepartment(""); 
-    setCredits(null); 
-    setDescription(""); 
-
-    //Forces a refresh of the newly changes database.
-    setRefreshTable(!refreshTable);
   }
 
 
