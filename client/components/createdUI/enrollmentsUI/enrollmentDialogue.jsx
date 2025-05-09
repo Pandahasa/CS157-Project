@@ -44,8 +44,7 @@ const gradeOptions = [
   { value: "C", label: "C" },
   { value: "D", label: "D" },
   { value: "F", label: "F" },
-  { value: "In Progress", label: "In Progress" },
-  { value: "N/A", label: "N/A" },
+  { value: "IP", label: "In Progress" },
 ];
 
 export default function EnrollmentDialogue({ selectedRow, setSelectedRow, refreshTable, setRefreshTable }) {

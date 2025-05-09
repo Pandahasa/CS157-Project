@@ -43,8 +43,7 @@ const gradeOptions = [
   { value: "C", label: "C" },
   { value: "D", label: "D" },
   { value: "F", label: "F" },
-  { value: "In Progress", label: "In Progress" },
-  { value: "N/A", label: "N/A" },
+  { value: "IP", label: "In Progress" },
 ];
 
 export default function AddEnrollmentDialogue({ refreshTable, setRefreshTable }) {
@@ -190,7 +189,7 @@ export default function AddEnrollmentDialogue({ refreshTable, setRefreshTable })
     <Dialog onOpenChange={(isOpen) => { if (!isOpen) resetForm(); }}>
       <DialogTrigger asChild>
         {/* Consistent button styling with other "Add" dialogs */}
-        <Button className="bg-blue-300 hover:bg-blue-200 text-white" variant="outline">Add Enrollment</Button>
+        <Button className="bg-blue-300 hover:bg-blue-200 text-black" variant="outline">Add Enrollment</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>

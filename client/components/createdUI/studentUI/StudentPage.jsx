@@ -97,15 +97,19 @@ export default function PageWrap(){
 
 
     return(<>
-        <div>
+        <div className="container mx-auto py-6">
             {/*Query for studentID. */}
-            <div className = "flex">
-              <Input placeholder = "Enter studentID:" value = {inputStudentID} onChange = {(e) => setInputStudentID(e.target.value)}></Input>
-              <Button onClick = {() => {setInputStudentID(""); setDebouncedInputStudentID("");}}>Clear</Button>
+            <div className="flex justify-between items-center mb-4">
+              <div className = "flex items-center gap-2 w-full">
+                <Input placeholder = "Enter studentID:" value = {inputStudentID} onChange = {(e) => setInputStudentID(e.target.value)}></Input>
+                <Button  variant="outline" onClick = {() => {setInputStudentID(""); setDebouncedInputStudentID("");}}>Clear</Button>
+              </div>
             </div>
 
             <StudentTable data = {students} columns = {columns} refreshTable = {refreshTable} setRefreshTable = {setRefreshTable}></StudentTable>
-            <AddStudentDialogue refreshTable={refreshTable} setRefreshTable={setRefreshTable}></AddStudentDialogue>
+            <div className="mt-4">
+              <AddStudentDialogue refreshTable={refreshTable} setRefreshTable={setRefreshTable}></AddStudentDialogue>
+            </div>
         </div>
     </>);
 }
