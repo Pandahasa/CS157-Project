@@ -63,7 +63,8 @@ public class DatabaseInitializer implements CommandLineRunner {
                 instructor_id INT NOT NULL,
                 FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
                 FOREIGN KEY (course_id) REFERENCES Courses(course_id) ON DELETE CASCADE,
-                FOREIGN KEY (instructor_id) REFERENCES Instructors(instructor_id) ON DELETE CASCADE
+                FOREIGN KEY (instructor_id) REFERENCES Instructors(instructor_id) ON DELETE CASCADE,
+                UNIQUE KEY unique_enrollment (student_id, course_id, semester)
             );
         """;
 

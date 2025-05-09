@@ -28,48 +28,24 @@ const departments = [
     label: "Computer Science",
   },
   {
+    value: "Engineering",
+    label: "Engineering",
+  },
+  {
     value: "Data Science",
     label: "Data Science",
-  },
-  {
-    value: "Electrical Engineering",
-    label: "Electrical Engineering",
-  },
-  {
-    value: "Mechanical Engineering",
-    label: "Mechanical Engineering",
-  },
-  {
-    value: "Mathematics",
-    label: "Mathematics",
-  },
-  {
-    value: "Physics",
-    label: "Physics",
-  },
-  {
-    value: "Chemistry",
-    label: "Chemistry",
   },
   {
     value: "Biology",
     label: "Biology",
   },
   {
-    value: "Business Administration",
-    label: "Business Administration",
+    value: "Business",
+    label: "Business",
   },
   {
-    value: "Economics",
-    label: "Economics",
-  },
-  {
-    value: "English",
-    label: "English",
-  },
-  {
-    value: "History",
-    label: "History",
+    value: "Pre-Med",
+    label: "Pre-Med",
   },
 ]
 
