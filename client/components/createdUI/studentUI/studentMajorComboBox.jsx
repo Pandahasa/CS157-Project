@@ -49,9 +49,11 @@ const majors = [
   },
 ]
 
-export default function StudentComboBox({originalMajor, setMajor}) {
+export default function StudentMajorComboBox({originalMajor, setMajor}) {
+  //Set open combo box modal.
   const [open, setOpen] = React.useState(false)
   
+  //Set original major.
   useEffect(()=>{
 
     setMajor(originalMajor);

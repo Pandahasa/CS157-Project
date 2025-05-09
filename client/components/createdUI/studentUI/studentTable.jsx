@@ -21,7 +21,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 
-import StudentDialog from "@/components/createdUI/studentDialog"
+import StudentDialog from "@/components/createdUI/studentUI/studentDialog"
 
 
 export default function StudentTable({ data, columns, refreshTable, setRefreshTable}) {

@@ -1,9 +1,11 @@
 "use client";
 import React from "react"
-import StudentTable from "@/components/createdUI/studentTable.jsx"
+import StudentTable from "@/components/createdUI/studentUI/studentTable.jsx"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
+import AddStudentDialogue from "@/components/createdUI/studentUI/addStudentDialogue"
 
+//These are the columns that will be made according to the database.
 const columns = [
   {
     accessorKey: "studentID",
@@ -73,6 +75,8 @@ export default function PageWrap(){
 
             //If nothing is inputted, return all the students.
             if(inputStudentID == "") return true;
+
+            //Searches student based on the query (studentID).
             if(student.studentID.toString().startsWith(debouncedInputStudentID.toLowerCase())) return true;
         })
 
@@ -91,9 +95,10 @@ export default function PageWrap(){
 
     return(<>
         <div>
-            {/*Handle searching for students within query. */}
+            {/*Query for studentID. */}
             <Input placeholder = "Enter studentID:" onChange = {(e) => setInputStudentID(e.target.value)}></Input>
             <StudentTable data = {students} columns = {columns} refreshTable = {refreshTable} setRefreshTable = {setRefreshTable}></StudentTable>
+            <AddStudentDialogue refreshTable={refreshTable} setRefreshTable={setRefreshTable}></AddStudentDialogue>
         </div>
     </>);
 }
