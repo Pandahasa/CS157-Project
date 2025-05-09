@@ -51,7 +51,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         """;
 
         // SQL to create the Enrollment table
-        // Doesn't violate BCNF because instructor assignment is per enrollment 
+        // Doesn't violate BCNF because instructor assignment is per enrollment
         // and not dependent on the course or student.
         String createEnrollmentTableSQL = """
             CREATE TABLE IF NOT EXISTS Enrollment (
@@ -59,11 +59,11 @@ public class DatabaseInitializer implements CommandLineRunner {
                 student_id INT NOT NULL,
                 course_id INT NOT NULL,
                 semester VARCHAR(50) NOT NULL,
-                grade VARCHAR(5), -- Grade can be null initially
-                instructor_id INT, -- Link to the instructor for this specific enrollment
+                grade VARCHAR(5) NOT NULL,
+                instructor_id INT NOT NULL,
                 FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
                 FOREIGN KEY (course_id) REFERENCES Courses(course_id) ON DELETE CASCADE,
-                FOREIGN KEY (instructor_id) REFERENCES Instructors(instructor_id) ON DELETE SET NULL, -- If instructor is deleted, set instructor_id in enrollment to NULL
+                FOREIGN KEY (instructor_id) REFERENCES Instructors(instructor_id) ON DELETE CASCADE,
                 UNIQUE KEY unique_enrollment (student_id, course_id, semester)
             );
         """;
