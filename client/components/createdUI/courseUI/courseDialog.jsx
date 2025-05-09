@@ -16,18 +16,16 @@ import CourseDepartmentComboBox from "@/components/createdUI/courseUI/courseDepa
 import { toast } from 'sonner';
 
 export default function CourseDialog({selectedRow, setSelectedRow, refreshTable, setRefreshTable}) {
-  //This doesn't preset values as selectedRow is defaulted null.
-  // State will be updated by useEffect when selectedRow changes.
   const [title, setTitle] = useState("");
   const [department, setDepartment] = useState("");
-  const [courseId, setCourseId] = useState(""); // Changed from courseID
-  const [credits, setCredits] = useState(""); // Will be string from input, parse before sending
+  const [courseId, setCourseId] = useState("");
+  const [credits, setCredits] = useState("");
   const [description, setDescription] = useState("");
 
 
   //Submit changes to database
-  const submitCourseChanges = async () => { // Made async
-    const courseData = {title, department, courseId, credits, description}; // Use courseId
+  const submitCourseChanges = async () => {
+    const courseData = {title, department, courseId, credits, description};
     console.log("Submitting course changes:", courseData);
 
       //Checks if valid input or do not continue.
@@ -60,9 +58,8 @@ export default function CourseDialog({selectedRow, setSelectedRow, refreshTable,
         return;
     }
 
-    //INPUT SQL LOGIC HERE. (PUT Request)
     try {
-        const response = await fetch(`http://localhost:8080/api/courses/${courseId}`, { // Use courseId
+        const response = await fetch(`http://localhost:8080/api/courses/${courseId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ title, department, credits: creditsAsNumber, description })
@@ -96,9 +93,9 @@ export default function CourseDialog({selectedRow, setSelectedRow, refreshTable,
   }
 
   //Delete Course from database (Based on their ID).
-  const deleteCourse = async () => { // Made async
+  const deleteCourse = async () => {
     //Delete Course
-    console.log("Attempting to delete course with ID:", courseId); // Use courseId
+    console.log("Attempting to delete course with ID:", courseId);
 
     if (!courseId) {
         toast.custom(() => (
@@ -109,9 +106,8 @@ export default function CourseDialog({selectedRow, setSelectedRow, refreshTable,
         return;
     }
 
-    //INPUT SQL LOGIC HERE. (DELETE Request)
     try {
-        const response = await fetch(`http://localhost:8080/api/courses/${courseId}`, { // Use courseId
+        const response = await fetch(`http://localhost:8080/api/courses/${courseId}`, {
             method: "DELETE"
         });
 
@@ -156,9 +152,9 @@ export default function CourseDialog({selectedRow, setSelectedRow, refreshTable,
     // Assumes selectedRow.original contains courseId (camelCase)
     setTitle(selectedRow.original.title || "");
     setDepartment(selectedRow.original.department || "");
-    setCredits(selectedRow.original.credits?.toString() || ""); // Ensure credits is string for input
+    setCredits(selectedRow.original.credits?.toString() || ""); 
     setDescription(selectedRow.original.description || "");
-    setCourseId(selectedRow.original.courseId || ""); // Changed from courseID
+    setCourseId(selectedRow.original.courseId || "");
   }, [selectedRow])
 
   return (

@@ -1,4 +1,7 @@
-import { Button } from "@/components/ui/button"
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -6,134 +9,249 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useState, useEffect } from "react"
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
 
-export default function EnrollmentDialogue({selectedRow, setSelectedRow, refreshTable, setRefreshTable}) {
-  //This doesn't preset values as selectedRow is defaulted null.
-  const [enrollmentID, setEnrollmentID] = useState(selectedRow?.original.enrollmentID);
-  const [studentID, setStudentID] = useState(selectedRow?.original.studentID);
-  const [courseID, setCourseID] = useState(selectedRow?.original.courseID);
-  const [semester, setSemester] = useState(selectedRow?.original.semester);
+// Options for Semester and Grade
+const semesterOptions = [
+  { value: "Fall", label: "Fall" },
+  { value: "Spring", label: "Spring" },
+  { value: "Summer", label: "Summer" },
+  { value: "Winter", label: "Winter" },
+];
 
-  //Submit changes to database
-  const submitEnrollmentGradeChanges = () => {
-    const randomVar = {firstName, lastName, studentID, major}
-    console.log(randomVar);
+const gradeOptions = [
+  { value: "A", label: "A" },
+  { value: "B", label: "B" },
+  { value: "C", label: "C" },
+  { value: "D", label: "D" },
+  { value: "F", label: "F" },
+  { value: "In Progress", label: "In Progress" },
+  { value: "N/A", label: "N/A" },
+];
 
+export default function EnrollmentDialogue({ selectedRow, setSelectedRow, refreshTable, setRefreshTable }) {
+  // State for form fields
+  const [enrollmentId, setEnrollmentId] = useState("");
+  const [studentId, setStudentId] = useState("");
+  const [courseId, setCourseId] = useState("");
+  const [instructorId, setInstructorId] = useState("");
+  const [semester, setSemester] = useState("");
+  const [grade, setGrade] = useState("");
 
-      //Checks if valid input or do not continue.
-      if(!firstName || !lastName || !major){
-          toast.custom(() => (
-              <div className="bg-red-500 text-white p-5 rounded shadow-lg">
-                  Please fill in all valid inputs for student.
-              </div>
-          ),{ duration: 2000,});
-          //Gets out of selectedRow.
-          setSelectedRow(null);
+  // State for ComboBox data
+  const [studentsList, setStudentsList] = useState([]);
+  const [coursesList, setCoursesList] = useState([]);
+  const [instructorsList, setInstructorsList] = useState([]);
 
-          //Exit out and not create into sql database.
-          return;
-      }else{
-          toast.custom(() => (
-              <div className="bg-green-500 text-white p-5 rounded shadow-lg">
-                  ✅ Student edited successfully!
-              </div>
-          ),{ duration: 2000,});
+  // State for Popover visibility
+  const [openStudentPopover, setOpenStudentPopover] = useState(false);
+  const [openCoursePopover, setOpenCoursePopover] = useState(false);
+  const [openInstructorPopover, setOpenInstructorPopover] = useState(false);
+  const [openSemesterPopover, setOpenSemesterPopover] = useState(false);
+  const [openGradePopover, setOpenGradePopover] = useState(false);
+
+  // Fetch data for ComboBoxes
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [studentsRes, coursesRes, instructorsRes] = await Promise.all([
+          fetch("http://localhost:8080/api/students"),
+          fetch("http://localhost:8080/api/courses"),
+          fetch("http://localhost:8080/api/instructors"),
+        ]);
+
+        if (!studentsRes.ok) throw new Error(`Failed to fetch students: ${studentsRes.statusText}`);
+        const studentsData = await studentsRes.json();
+        setStudentsList(studentsData.map(s => ({ value: s.studentId.toString(), label: `${s.studentId} - ${s.firstName} ${s.lastName}` })));
+
+        if (!coursesRes.ok) throw new Error(`Failed to fetch courses: ${coursesRes.statusText}`);
+        const coursesData = await coursesRes.json();
+        setCoursesList(coursesData.map(c => ({ value: c.courseId.toString(), label: `${c.courseId} - ${c.title || 'Unnamed Course'}` })));
+
+        if (!instructorsRes.ok) throw new Error(`Failed to fetch instructors: ${instructorsRes.statusText}`);
+        const instructorsData = await instructorsRes.json();
+        setInstructorsList(instructorsData.map(i => ({ value: i.instructorId.toString(), label: `${i.instructorId} - ${i.firstName} ${i.lastName}` })));
+      } catch (error) {
+        console.error("Error fetching data for enrollment dialogue:", error);
+        toast.error(`Error fetching supporting data: ${error.message}`);
       }
+    }
+    fetchData();
+  }, []);
 
+  // Populate form when selectedRow changes
+  useEffect(() => {
+    if (selectedRow?.original) {
+      // Ensure enrollmentID is correctly accessed and converted to string
+      setEnrollmentId(selectedRow.original.enrollmentId?.toString() || "");
+      setStudentId(selectedRow.original.studentId?.toString() || "");
+      setCourseId(selectedRow.original.courseId?.toString() || "");
+      setInstructorId(selectedRow.original.instructorId?.toString() || "");
+      setSemester(selectedRow.original.semester || "");
+      setGrade(selectedRow.original.grade || "");
+    } else {
+      // Reset form when dialog is closed or no row is selected
+      setEnrollmentId("");
+      setStudentId("");
+      setCourseId("");
+      setInstructorId("");
+      setSemester("");
+      setGrade("");
+    }
+  }, [selectedRow]);
 
-    //INPUT SQL LOGIC HERE.
+  // Handle enrollment update
+  const handleUpdateEnrollment = async () => {
+    if (!enrollmentId || !studentId || !courseId || !instructorId || !semester || !grade) {
+      toast.error("Please ensure all fields are selected.");
+      return;
+    }
 
+    const updatedEnrollment = {
+      studentId: parseInt(studentId),
+      courseId: parseInt(courseId),
+      instructorId: parseInt(instructorId),
+      semester,
+      grade,
+    };
 
+    try {
+      const response = await fetch(`http://localhost:8080/api/enrollments/${enrollmentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedEnrollment),
+      });
 
-    //Gets out of selectedRow.
-    setSelectedRow(null);
-    //Forces a refresh of the newly changes database.
-    setRefreshTable(!refreshTable);
-  }
+      if (response.ok) {
+        toast.success("✅ Enrollment updated successfully!");
+        setSelectedRow(null); // Close dialog
+        setRefreshTable(prev => !prev); // Refresh table
+      } else {
+        const errorData = await response.text();
+        toast.error(`❌ Error updating enrollment: ${response.status} ${errorData}`);
+      }
+    } catch (error) {
+      toast.error(`❌ Network error: ${error.message}`);
+    }
+  };
 
+  // Handle enrollment deletion
+  const handleDeleteEnrollment = async () => {
+    // This check is crucial. If enrollmentId is empty, the toast appears.
+    // This means selectedRow.original.enrollmentID was likely missing or empty for the selected row.
+    if (!enrollmentId) {
+      toast.error("Enrollment ID not found for deletion. Please ensure the selected row has an Enrollment ID.");
+      return;
+    }
+    try {
+      const response = await fetch(`http://localhost:8080/api/enrollments/${enrollmentId}`, {
+        method: "DELETE",
+      });
 
-  //Delete enrollment from database (Based on their ID).
-  const deleteEnrollment = () => {
-
-    //Delete Course
-    console.log("Deleted enrollment.")
-            toast.custom(() => (
-              <div className="bg-green-700 text-white p-5 rounded shadow-lg">
-                  ✅ Deleted Enrollment!
-              </div>
-      ),{ duration: 2000,});
-
-    //Gets out of selectedRow.
-    setSelectedRow(null);
-    //Forces a refresh of the newly changes database.
-    setRefreshTable(!refreshTable);
-  }
-
-  //Set useState variables to back to original when leaving.
-  useEffect(()=>{
-    //If there's no selectedRow, don't do anything.
-    if(!selectedRow) return;
-    setEnrollmentID(selectedRow?.original.enrollmentID);
-    setSemester(selectedRow?.original.semester); 
-    setStudentID(selectedRow?.original.studentID); 
-    setCourseID(selectedRow?.original.courseID); 
-  }, [selectedRow])
+      if (response.ok) {
+        toast.success("✅ Enrollment deleted successfully!");
+        setSelectedRow(null); // Close dialog
+        setRefreshTable(prev => !prev); // Refresh table
+      } else {
+        const errorData = await response.text();
+        toast.error(`❌ Error deleting enrollment: ${response.status} ${errorData}`);
+      }
+    } catch (error) {
+      toast.error(`❌ Network error: ${error.message}`);
+    }
+  };
+  
+  // Helper function to create a ComboBox
+  const createComboBox = (id, label, value, setValue, openPopover, setOpenPopover, options, placeholderPrefix = "Select") => (
+    <div className="grid grid-cols-4 items-center gap-4">
+      <Label htmlFor={id} className="text-right">{label}</Label>
+      <Popover open={openPopover} onOpenChange={setOpenPopover}>
+        <PopoverTrigger asChild className="col-span-3">
+          <Button variant="outline" role="combobox" aria-expanded={openPopover} className="w-full justify-between">
+            {value ? options.find(opt => opt.value === value)?.label : `${placeholderPrefix} ${label.toLowerCase()}...`}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+          <Command>
+            <CommandInput placeholder={`Search ${label.toLowerCase()}...`} />
+            <CommandList>
+              <CommandEmpty>No {label.toLowerCase()} found.</CommandEmpty>
+              <CommandGroup>
+                {options.map((option) => (
+                  <CommandItem
+                    key={`${id}-${option.value}`}
+                    value={option.value}
+                    onSelect={(currentValue) => {
+                      setValue(currentValue === value ? "" : currentValue);
+                      setOpenPopover(false);
+                    }}
+                  >
+                    <Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
+                    {option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
 
   return (
-    <>
-    {/*Popup code, once row is clicked on, pops up an input to pass and change information.*/}
-    {/*Information is accessible through row.original attribute. */}
-    <Dialog open={selectedRow} onOpenChange={() => setSelectedRow(null)}>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Enrollment Information</DialogTitle>
-                <DialogDescription>
-                    Information regarding this enrollment.
-                </DialogDescription>
-            </DialogHeader>
+    <Dialog open={Boolean(selectedRow)} onOpenChange={() => setSelectedRow(null)}>
+      <DialogContent className="sm:max-w-lg"> 
+        <DialogHeader>
+          <DialogTitle>Edit Enrollment Information</DialogTitle>
+          <DialogDescription>
+            Modify the details for this enrollment. Enrollment ID cannot be changed.
+          </DialogDescription>
+        </DialogHeader>
 
-            {/*For all the information regarding the enrollment, can't be changed, only deleted.*/}
-            <form className="space-y-2">
+        <div className="grid gap-4 py-4">
+          {/* EnrollmentID (disabled for display, used for operations) */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="enrollmentIdDisplay" className="text-right">Enrollment ID</Label>
+            <Input id="enrollmentIdDisplay" value={enrollmentId} disabled className="col-span-3" />
+          </div>
 
-              {/*EnrollmentID*/}
-              <div className="grid w-full items-center gap-1.5">
-                  <Label htmlFor="enrollmentID">EnrollmentID</Label>
-                  <Input className = "text-black" disabled id="enrollmentID" defaultValue={enrollmentID} />
-              </div>
+          {createComboBox("studentId", "Student", studentId, setStudentId, openStudentPopover, setOpenStudentPopover, studentsList)}
+          {createComboBox("courseId", "Course", courseId, setCourseId, openCoursePopover, setOpenCoursePopover, coursesList)}
+          {createComboBox("instructorId", "Instructor", instructorId, setInstructorId, openInstructorPopover, setOpenInstructorPopover, instructorsList)}
+          {createComboBox("semester", "Semester", semester, setSemester, openSemesterPopover, setOpenSemesterPopover, semesterOptions)}
+          {createComboBox("grade", "Grade", grade, setGrade, openGradePopover, setOpenGradePopover, gradeOptions)}
+        </div>
 
-              {/*StudentID*/}
-              <div className="grid w-full items-center gap-1.5">
-                  <Label htmlFor="studentID">StudentID</Label>
-                  <Input className = "text-black" disabled id="studentID" autoFocus={false} defaultValue={studentID}/>
-              </div>
-
-              {/*CourseID.*/}
-              <div className="grid w-full items-center gap-1.5">
-                  <Label htmlFor="courseID">CourseID</Label>
-                  <Input className = "text-black" disabled id="courseID" defaultValue={courseID}/>
-              </div>
-
-              {/*Semester.*/}
-              <div className="grid w-full items-center gap-1.5">
-                  <Label htmlFor="semester">Semester</Label>
-                  <Input className = "text-black" disabled id="semester" defaultValue={semester}/>
-              </div>
-
-
-            </form>
-
-            <Button className = "bg-red-500 hover:bg-red-400" onClick = {deleteEnrollment}>Delete</Button>
-            
-        </DialogContent>
+        <DialogFooter className="sm:justify-between">
+          <Button variant="destructive" onClick={handleDeleteEnrollment}>Delete Enrollment</Button>
+          <div className="flex gap-2">
+            <DialogClose asChild>
+                <Button type="button" variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleUpdateEnrollment}>Save Changes</Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
-    
-    
-    </>
-  )
+  );
 }

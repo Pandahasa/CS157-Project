@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 // Columns for the CourseTable
 const columns = [
   {
-    accessorKey: "courseId", // Matches backend model
+    accessorKey: "courseId",
     header: "CourseID",
   },
   {
@@ -114,7 +114,7 @@ export default function CoursePage() {
       <CourseTable
         data={courses}
         columns={columns}
-        setSelectedRow={setSelectedCourse} // For handling row selection for edit/delete
+        setSelectedRow={setSelectedCourse} 
         refreshTable={refreshTable}
         setRefreshTable={setRefreshTable}
       />

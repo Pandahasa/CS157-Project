@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import StudentPage from "@/components/createdUI/studentUI/StudentPage"
 import CoursePage from "@/components/createdUI/courseUI/CoursePage"
 import EnrollmentPage from "@/components/createdUI/enrollmentsUI/EnrollmentPage"
+import InstructorPage from "@/components/createdUI/instructorUI/InstructorPage"
 
 import { useState, useEffect } from "react";
 
@@ -22,6 +23,7 @@ export default function MainPage(){
             <TabsTrigger value="Students">Students</TabsTrigger>
             <TabsTrigger value="Courses">Courses</TabsTrigger>
             <TabsTrigger value="Enrollments">Enrollments</TabsTrigger>
+            <TabsTrigger value="Instructors">Instructors</TabsTrigger>
         </TabsList>
         
         <TabsContent value="Students">
@@ -33,7 +35,9 @@ export default function MainPage(){
         <TabsContent value="Enrollments">
             <EnrollmentPage></EnrollmentPage>
         </TabsContent>
-
+        <TabsContent value="Instructors">
+          <InstructorPage></InstructorPage>
+        </TabsContent>
     </Tabs>
 
     </>);

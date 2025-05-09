@@ -1,129 +1,169 @@
 "use client";
-import React from "react"
-import StudentTable from "@/components/createdUI/studentUI/studentTable.jsx"
-import { Input } from "@/components/ui/input"
-import { useState, useEffect } from "react"
-import AddStudentDialogue from "@/components/createdUI/studentUI/addStudentDialogue"
+import React, { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import AddEnrollmentDialogue from "@/components/createdUI/enrollmentsUI/addEnrollmentDialogue"; 
 import EnrollmentTable from "./enrollmentTable";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
+import { toast } from 'sonner'; 
 
-//These are the columns that will be made according to the database.
+//These are the columns that will be made
 const columns = [
   {
-    accessorKey: "enrollmentID",
+    accessorKey: "enrollmentId", 
     header: "EnrollmentID",
     cell: (info) => info.getValue(),
-  },  
+  },
   {
-    accessorKey: "courseID",
+    accessorKey: "courseId", 
     header: "CourseID",
     cell: (info) => info.getValue(),
   },
   {
-    accessorKey: "studentID",
+    accessorKey: "studentId",
     header: "StudentID",
     cell: (info) => info.getValue(),
   },
   {
-    accessorKey: "semester",
+    accessorKey: "instructorId", 
+    header: "InstructorID",
+    cell: (info) => info.getValue(),
+  },
+  {
+    accessorKey: "semester", 
     header: "Semester",
     cell: (info) => <span className="text-blue-500">{info.getValue()}</span>,
   },
-]
+  {
+    accessorKey: "grade", 
+    header: "Grade",
+    cell: (info) => info.getValue(),
+  },
+];
 
+export default function EnrollmentPage() {
+  //Variable that holds all the enrollments fetched from the backend.
+  const [allEnrollments, setAllEnrollments] = useState([]);
 
-const tempEnrollments = [
-  { studentID: 101001, instructorID: 102120, enrollmentID: 321312, courseID: 231321, grade: "B", semester: "Spring"},
-  { studentID: 303230, instructorID: 101111, enrollmentID: 321122, courseID: 237311, grade: "C", semester: "Fall"},
-  { studentID: 201230, instructorID: 101111, enrollmentID: 323312, courseID: 238321, grade: "D", semester: "Summer"},
-  { studentID: 201430, instructorID: 101111, enrollmentID: 353127, courseID: 206221, grade: "A", semester: "Winter"},
-]
+  //Table data of the enrollments currently displayed
+  const [enrollments, setEnrollments] = useState([]);
 
+  //Input query for studentID
+  const [inputStudentID, setInputStudentID] = useState("");
+  //The debounced studentID search bar value
+  const [debouncedInputStudentID, setDebouncedInputStudentID] = useState("");
 
+  //Input query for courseID
+  const [inputCourseID, setInputCourseID] = useState("");
+  //The debounced courseID search bar value
+  const [debouncedInputCourseID, setDebouncedInputCourseID] = useState("");
 
-export default function EnrollmentPage(){
+  //Input query for enrollmentID
+  const [inputEnrollmentID, setInputEnrollmentID] = useState("");
+  //The debounced enrollmentID search bar value
+  const [debouncedInputEnrollmentID, setDebouncedInputEnrollmentID] = useState("");
 
-    //Variable that holds all the enrollments.
-    const [allEnrollments, setAllEnrollments] = useState(tempEnrollments);
+  //This means the database has been updated and we need to refresh table.
+  const [refreshTable, setRefreshTable] = useState(false);
 
-    //Table data of the enrollments currently in database.
-    const [enrollments, setEnrollments] = useState(allEnrollments);
-
-    //Input query for studentID
-    const [inputStudentID, setInputStudentID] = useState("");
-    //The debounced studentID search bar value
-    const [debouncedInputStudentID, setDebouncedInputStudentID] = useState("");
-
-    //Input query for courseID
-    const [inputCourseID, setInputCourseID] = useState("");
-    //The debounced courseID search bar value
-    const [debouncedinputCourseID, setDebouncedInputCourseID] = useState("");
-
-    //Input query for enrollmentID
-    const [inputEnrollmentID, setInputEnrollmentID] = useState("");
-    //The debounced enrollmentID search bar value
-    const [debouncedEnrollmentID, setDebouncedEnrollmentID] = useState("");
-
-
-    //This means the database has been updated and we need to refresh table.
-    const [refreshTable, setRefreshTable] = useState(false);
-
-    useEffect(() => {
-
-        async function fetchEnrollments() {
-            const res = await fetch("/api/students"); // Your API route or Spring Boot backend
-            const data = await res.json();
-            setAllEnrollments(data);
+  useEffect(() => {
+    async function fetchEnrollments() {
+      try {
+        const res = await fetch("http://localhost:8080/api/enrollments");
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("Failed to fetch enrollments:", res.status, errorText);
+          toast.error(`Failed to fetch enrollments: ${res.status} ${errorText}`);
+          setAllEnrollments([]);
+          setEnrollments([]);
+          return;
         }
+        const data = await res.json();
+        setAllEnrollments(data);
+        setEnrollments(data); 
+      } catch (error) {
+        console.error("Network error fetching enrollments:", error);
+        toast.error("Network error fetching enrollments.");
+        setAllEnrollments([]);
+        setEnrollments([]);
+      }
+    }
 
-    fetchEnrollments(); 
-    }, [refreshTable]);
+    fetchEnrollments();
+  }, [refreshTable]);
 
-    //Filters the enrollment array based off the search query given.
-    useEffect(() => {
+  //Filters the enrollment array based off the search query given.
+  useEffect(() => {
+    let filteredData = allEnrollments;
 
-        //Will have to have an api call here.
+    if (debouncedInputEnrollmentID) {
+      filteredData = filteredData.filter((enrollment) =>
+        enrollment.enrollmentID?.toString().toLowerCase().startsWith(debouncedInputEnrollmentID.toLowerCase())
+      );
+    }
+    if (debouncedInputStudentID) {
+      filteredData = filteredData.filter((enrollment) =>
+        enrollment.studentID?.toString().toLowerCase().startsWith(debouncedInputStudentID.toLowerCase())
+      );
+    }
+    if (debouncedInputCourseID) {
+      filteredData = filteredData.filter((enrollment) =>
+        enrollment.courseID?.toString().toLowerCase().startsWith(debouncedInputCourseID.toLowerCase())
+      );
+    }
 
+    setEnrollments(filteredData);
+  }, [debouncedInputStudentID, debouncedInputEnrollmentID, debouncedInputCourseID, allEnrollments]);
 
-        let filteredEnrollments = allEnrollments.filter(enrollment =>{
-
-            //If nothing is inputted, return all the students.
-            if(inputStudentID == "" && inputCourseID == "" && inputEnrollmentID == "") return true;
-
-            //Searches student based on the query (studentID, courseID, enrollmentID).
-            if(enrollment.studentID.toString().startsWith(debouncedInputStudentID.toLowerCase()) && 
-                enrollment.enrollmentID.toString().startsWith(debouncedEnrollmentID.toLowerCase()) &&
-                enrollment.courseID.toString().startsWith(debouncedinputCourseID.toLowerCase())) return true;
-        })
-
-        setEnrollments(filteredEnrollments);
-    }, [debouncedInputStudentID, debouncedEnrollmentID, debouncedinputCourseID]);
-
-
-    //Debounced search studentID, enrollmentID, courseID, this makes searching less laggy since less updates.
-    useEffect(() => {
-    const timeout = setTimeout(() => {
+  //Debounced search inputs
+  useEffect(() => {
+    const handler = setTimeout(() => {
       setDebouncedInputStudentID(inputStudentID);
-      setDebouncedEnrollmentID(inputEnrollmentID);
+      setDebouncedInputEnrollmentID(inputEnrollmentID);
       setDebouncedInputCourseID(inputCourseID);
     }, 500);
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(handler);
+    };
   }, [inputStudentID, inputCourseID, inputEnrollmentID]);
 
-
-    return(<>
-        <div>
-            {/*Query using the IDS. */}
-            <div className = "flex">
-              <Input placeholder = "Enter EnrollmentID:" value = {inputEnrollmentID} onChange = {(e) => setInputEnrollmentID(e.target.value)}></Input>
-              <Button onClick = {() => setInputEnrollmentID("")}>Clear</Button>
-              <Input placeholder = "Enter StudentID:" value = {inputStudentID} onChange = {(e) => setInputStudentID(e.target.value)}></Input>
-              <Button onClick = {() => setInputStudentID("")}>Clear</Button>
-              <Input placeholder = "Enter CourseID:" value = {inputCourseID} onChange = {(e) => setInputCourseID(e.target.value)}></Input>
-              <Button onClick = {() => setInputCourseID("")}>Clear</Button>
-            </div>
-            <EnrollmentTable data = {enrollments} columns = {columns} refreshTable = {refreshTable} setRefreshTable = {setRefreshTable}></EnrollmentTable>
-            {/* <AddStudentDialogue refreshTable={refreshTable} setRefreshTable={setRefreshTable}></AddStudentDialogue> */}
+  return (
+    <>
+      <div className="container mx-auto py-6">
+        {/*Query using the IDS. */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex items-center gap-1 flex-grow min-w-[200px]">
+            <Input
+              placeholder="Filter by EnrollmentID..."
+              value={inputEnrollmentID}
+              onChange={(e) => setInputEnrollmentID(e.target.value)}
+              className="flex-grow"
+            />
+            <Button onClick={() => { setInputEnrollmentID(""); setDebouncedInputEnrollmentID(""); }} variant="outline">Clear</Button>
+          </div>
+          <div className="flex items-center gap-1 flex-grow min-w-[200px]">
+            <Input
+              placeholder="Filter by StudentID..."
+              value={inputStudentID}
+              onChange={(e) => setInputStudentID(e.target.value)}
+              className="flex-grow"
+            />
+            <Button onClick={() => { setInputStudentID(""); setDebouncedInputStudentID(""); }} variant="outline">Clear</Button>
+          </div>
+          <div className="flex items-center gap-1 flex-grow min-w-[200px]">
+            <Input
+              placeholder="Filter by CourseID..."
+              value={inputCourseID}
+              onChange={(e) => setInputCourseID(e.target.value)}
+              className="flex-grow"
+            />
+            <Button onClick={() => { setInputCourseID(""); setDebouncedInputCourseID(""); }} variant="outline">Clear</Button>
+          </div>
         </div>
-    </>);
+        <EnrollmentTable data={enrollments} columns={columns} refreshTable={refreshTable} setRefreshTable={setRefreshTable} />
+        <div className="mt-4">
+          <AddEnrollmentDialogue refreshTable={refreshTable} setRefreshTable={setRefreshTable} />
+        </div>
+      </div>
+    </>
+  );
 }
