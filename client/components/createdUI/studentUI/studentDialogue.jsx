@@ -64,11 +64,9 @@ export default function StudentDialogue({selectedRow, setSelectedRow, refreshTab
     //Delete student
     console.log("Deleted student.")
 
-    //Delete Course
-    console.log("Deleted Student.")
             toast.custom(() => (
               <div className="bg-green-700 text-white p-5 rounded shadow-lg">
-                  ✅ Course Student!
+                  ✅ Deleted Student!
               </div>
       ),{ duration: 2000,});
 

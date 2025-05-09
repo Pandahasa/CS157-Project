@@ -4,6 +4,7 @@ import StudentTable from "@/components/createdUI/studentUI/studentTable.jsx"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 import AddStudentDialogue from "@/components/createdUI/studentUI/addStudentDialogue"
+import { Button } from "@/components/ui/button"
 
 //These are the columns that will be made according to the database.
 const columns = [
@@ -96,7 +97,11 @@ export default function PageWrap(){
     return(<>
         <div>
             {/*Query for studentID. */}
-            <Input placeholder = "Enter studentID:" onChange = {(e) => setInputStudentID(e.target.value)}></Input>
+            <div className = "flex">
+              <Input placeholder = "Enter studentID:" value = {inputStudentID} onChange = {(e) => setInputStudentID(e.target.value)}></Input>
+              <Button onClick = {() => setInputStudentID("")}>Clear</Button>
+            </div>
+
             <StudentTable data = {students} columns = {columns} refreshTable = {refreshTable} setRefreshTable = {setRefreshTable}></StudentTable>
             <AddStudentDialogue refreshTable={refreshTable} setRefreshTable={setRefreshTable}></AddStudentDialogue>
         </div>

@@ -4,6 +4,7 @@ import CourseTable from "@/components/createdUI/courseUI/courseTable.jsx"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 import AddCourseDialog from "@/components/createdUI/courseUI/addCourseDialog"
+import { Button } from "@/components/ui/button"
 
 //These are the columns that will be made according to the database.
 const columns = [
@@ -25,7 +26,7 @@ const columns = [
   {
     accessorKey: "credits",
     header: "Course Credits",
-    cell: (info) => <span className="text-blue-500">{info.getValue()}</span>,
+    cell: (info) => <span className="">{info.getValue()}</span>,
   },
   {
     accessorKey: "description",
@@ -104,7 +105,11 @@ export default function CoursePage(){
     return(<>
         <div>
             {/*Query for courseID. */}
-            <Input placeholder = "Enter courseID:" onChange = {(e) => setInputCourseID(e.target.value)}></Input>
+            <div className = "flex">
+              <Input placeholder = "Enter courseID:" value = {inputCourseID} onChange = {(e) => setInputCourseID(e.target.value)}></Input>
+              <Button onClick = {() => setInputCourseID("")}>Clear</Button>
+            </div>
+
             <CourseTable data = {courses} columns = {columns} refreshTable = {refreshTable} setRefreshTable = {setRefreshTable}></CourseTable>
             <AddCourseDialog refreshTable = {refreshTable} setRefreshTable={setRefreshTable}></AddCourseDialog>
         </div>

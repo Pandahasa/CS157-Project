@@ -21,11 +21,11 @@ import {
   TableCell,
 } from "@/components/ui/table"
 
-import StudentDialogue from "@/components/createdUI/studentUI/studentDialogue"
+import EnrollmentDialogue from "@/components/createdUI/enrollmentsUI/enrollmentDialogue"
 
 
-export default function StudentTable({ data, columns, refreshTable, setRefreshTable}) {
-  //Selects the chosen row of students.
+export default function EnrollmentTable({ data, columns, refreshTable, setRefreshTable}) {
+  //Selects the chosen row of enrollments.
   const [selectedRow, setSelectedRow] = useState(null)
 
   //Table has to have imported variable with name "data".
@@ -36,7 +36,7 @@ export default function StudentTable({ data, columns, refreshTable, setRefreshTa
     getPaginationRowModel: getPaginationRowModel(),
   })
 
-  //Search for student within table also.
+  //Search for enrollments within table also.
 
 
   return (
@@ -71,8 +71,8 @@ export default function StudentTable({ data, columns, refreshTable, setRefreshTa
 
       </Table>
 
-      {/*Popup code, once row is clicked on, pops up an input to pass and change information.*/}
-      <StudentDialogue selectedRow = {selectedRow} setSelectedRow={setSelectedRow} refreshTable = {refreshTable} setRefreshTable={setRefreshTable}></StudentDialogue>
+      {/*Popup code, once row is clicked on, pops up enrollment information and allows user to delete enrollment.*/}
+      <EnrollmentDialogue selectedRow = {selectedRow} setSelectedRow={setSelectedRow} refreshTable = {refreshTable} setRefreshTable={setRefreshTable}></EnrollmentDialogue>
    
 
       {/*Pagination UI with previous and next buttons. */}
