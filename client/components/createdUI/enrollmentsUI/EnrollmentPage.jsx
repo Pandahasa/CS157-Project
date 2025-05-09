@@ -62,6 +62,11 @@ export default function EnrollmentPage() {
   //The debounced enrollmentID search bar value
   const [debouncedInputEnrollmentID, setDebouncedInputEnrollmentID] = useState("");
 
+  //Input query for instructorID
+  const [inputInstructorID, setInputInstructorID] = useState("");
+  //The debounced instructorID search bar value
+  const [debouncedInputInstructorID, setDebouncedInputInstructorID] = useState("");
+
   //This means the database has been updated and we need to refresh table.
   const [refreshTable, setRefreshTable] = useState(false);
 
@@ -95,24 +100,31 @@ export default function EnrollmentPage() {
   useEffect(() => {
     let filteredData = allEnrollments;
 
-    if (debouncedInputEnrollmentID) {
+    if (debouncedInputEnrollmentID.toString() !== "") {
       filteredData = filteredData.filter((enrollment) =>
-        enrollment.enrollmentID?.toString().toLowerCase().startsWith(debouncedInputEnrollmentID.toLowerCase())
+        enrollment.enrollmentId?.toString().toLowerCase().startsWith(debouncedInputEnrollmentID.toLowerCase())
+      );
+      console.log("hi")
+    }
+    if (debouncedInputStudentID.toString() !== "") {
+      filteredData = filteredData.filter((enrollment) =>
+        enrollment.studentId?.toString().toLowerCase().startsWith(debouncedInputStudentID.toLowerCase())
       );
     }
-    if (debouncedInputStudentID) {
+    if (debouncedInputCourseID.toString() !== "") {
       filteredData = filteredData.filter((enrollment) =>
-        enrollment.studentID?.toString().toLowerCase().startsWith(debouncedInputStudentID.toLowerCase())
+        enrollment.courseId?.toString().toLowerCase().startsWith(debouncedInputCourseID.toLowerCase())
       );
     }
-    if (debouncedInputCourseID) {
+
+    if (debouncedInputInstructorID.toString() !== "") {
       filteredData = filteredData.filter((enrollment) =>
-        enrollment.courseID?.toString().toLowerCase().startsWith(debouncedInputCourseID.toLowerCase())
+        enrollment.instructorId?.toString().toLowerCase().startsWith(debouncedInputInstructorID.toLowerCase())
       );
     }
 
     setEnrollments(filteredData);
-  }, [debouncedInputStudentID, debouncedInputEnrollmentID, debouncedInputCourseID, allEnrollments]);
+  }, [debouncedInputStudentID, debouncedInputEnrollmentID, debouncedInputCourseID, debouncedInputInstructorID, allEnrollments]);
 
   //Debounced search inputs
   useEffect(() => {
@@ -120,16 +132,18 @@ export default function EnrollmentPage() {
       setDebouncedInputStudentID(inputStudentID);
       setDebouncedInputEnrollmentID(inputEnrollmentID);
       setDebouncedInputCourseID(inputCourseID);
+      setDebouncedInputInstructorID(inputInstructorID);
     }, 500);
     return () => {
       clearTimeout(handler);
     };
-  }, [inputStudentID, inputCourseID, inputEnrollmentID]);
+  }, [inputStudentID, inputCourseID, inputEnrollmentID, inputInstructorID]);
 
   return (
     <>
       <div className="container mx-auto py-6">
         {/*Query using the IDS. */}
+        {/*EnrollmentID Query */}
         <div className="flex flex-wrap gap-2 mb-4">
           <div className="flex items-center gap-1 flex-grow min-w-[200px]">
             <Input
@@ -140,6 +154,7 @@ export default function EnrollmentPage() {
             />
             <Button onClick={() => { setInputEnrollmentID(""); setDebouncedInputEnrollmentID(""); }} variant="outline">Clear</Button>
           </div>
+          {/*StudentID Query */}
           <div className="flex items-center gap-1 flex-grow min-w-[200px]">
             <Input
               placeholder="Filter by StudentID..."
@@ -149,6 +164,7 @@ export default function EnrollmentPage() {
             />
             <Button onClick={() => { setInputStudentID(""); setDebouncedInputStudentID(""); }} variant="outline">Clear</Button>
           </div>
+          {/*CourseID Query */}
           <div className="flex items-center gap-1 flex-grow min-w-[200px]">
             <Input
               placeholder="Filter by CourseID..."
@@ -157,6 +173,16 @@ export default function EnrollmentPage() {
               className="flex-grow"
             />
             <Button onClick={() => { setInputCourseID(""); setDebouncedInputCourseID(""); }} variant="outline">Clear</Button>
+          </div>
+          {/*InstructorID Query */}
+          <div className="flex items-center gap-1 flex-grow min-w-[200px]">
+            <Input
+              placeholder="Filter by InstructorID..."
+              value={inputInstructorID}
+              onChange={(e) => setInputInstructorID(e.target.value)}
+              className="flex-grow"
+            />
+            <Button onClick={() => { setInputInstructorID(""); setDebouncedInputInstructorID(""); }} variant="outline">Clear</Button>
           </div>
         </div>
         <EnrollmentTable data={enrollments} columns={columns} refreshTable={refreshTable} setRefreshTable={setRefreshTable} />

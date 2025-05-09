@@ -89,9 +89,9 @@ export default function CoursePage() {
     const filteredData = allCourses.filter(course => {
       if (debouncedSearchTerm === "") return true;
       return (
-        (course.title && course.title.toLowerCase().includes(lowercasedFilter)) ||
-        (course.courseId && course.courseId.toString().toLowerCase().includes(lowercasedFilter)) ||
-        (course.department && course.department.toLowerCase().includes(lowercasedFilter))
+        (course.title && course.title.toLowerCase().startsWith(lowercasedFilter)) ||
+        (course.courseId && course.courseId.toString().toLowerCase().startsWith(lowercasedFilter)) ||
+        (course.department && course.department.toLowerCase().startsWith(lowercasedFilter))
       );
     });
     setCourses(filteredData);

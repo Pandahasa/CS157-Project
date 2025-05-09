@@ -30,7 +30,7 @@ const columns = [
   },
 ];
 
-export default function PageWrap(){
+export default function StudentPage(){
 
     //Variable that holds all the students fetched from the backend.
     const [allStudents, setAllStudents] = useState([]); 
@@ -39,10 +39,10 @@ export default function PageWrap(){
     const [students, setStudents] = useState([]); 
 
     //Input query for studentID
-    const [inputStudentID, setInputStudentID] = useState("");
+    const [inputStudentDetails, setInputStudentDetails] = useState("");
 
     //The debounced studentID search bar value
-    const [debouncedInputStudentID, setDebouncedInputStudentID] = useState("");
+    const [debouncedInputStudentDetails, setDebouncedInputStudentDetails] = useState("");
 
     //This means the database has been updated and we need to refresh table.
     const [refreshTable, setRefreshTable] = useState(false);
@@ -75,34 +75,42 @@ export default function PageWrap(){
 
     //Filters the student array based off the search query given.
     useEffect(() => {
+
+        let lowercasedFilter = debouncedInputStudentDetails.toLowerCase();
         let filteredStudents = allStudents.filter(student =>{
             //If nothing is inputted, return all the students.
-            if(debouncedInputStudentID === "") return true;
+            if(debouncedInputStudentDetails === "") return true;
 
             // Ensure student.studentID is not null or undefined before calling toString()
-            if(student.studentID && student.studentID.toString().startsWith(debouncedInputStudentID.toLowerCase())) return true;
-            return false; // Explicitly return false if conditions are not met
+            return (
+                    (student.studentId && student.studentId.toString().startsWith(lowercasedFilter)) ||
+                    (student.firstName && student.firstName.toLowerCase().startsWith(lowercasedFilter)) ||
+                    (student.lastName && student.lastName.toString().toLowerCase().startsWith(lowercasedFilter)) ||
+                    (student.major && student.major.toLowerCase().startsWith(lowercasedFilter))
+          
+            ) 
+            
         })
         setStudents(filteredStudents);
-    }, [debouncedInputStudentID, allStudents]); // Also re-filter when allStudents changes
+    }, [debouncedInputStudentDetails, allStudents]); // Also re-filter when allStudents changes
 
 
     //Debounced search studentID, this makes searching less laggy since less updates.
     useEffect(() => {
         const timeout = setTimeout(() => {
-          setDebouncedInputStudentID(inputStudentID);
+          setDebouncedInputStudentDetails(inputStudentDetails);
         }, 500);
         return () => clearTimeout(timeout);
-    }, [inputStudentID]);
+    }, [inputStudentDetails]);
 
 
     return(<>
         <div className="container mx-auto py-6">
-            {/*Query for studentID. */}
+            {/*Query for student details. */}
             <div className="flex justify-between items-center mb-4">
               <div className = "flex items-center gap-2 w-full">
-                <Input placeholder = "Enter studentID:" value = {inputStudentID} onChange = {(e) => setInputStudentID(e.target.value)}></Input>
-                <Button  variant="outline" onClick = {() => {setInputStudentID(""); setDebouncedInputStudentID("");}}>Clear</Button>
+                <Input placeholder = "Enter StudentID, First Name, Last Name, or Major:" value = {inputStudentDetails} onChange = {(e) => setInputStudentDetails(e.target.value)}></Input>
+                <Button  variant="outline" onClick = {() => {setInputStudentDetails(""); setDebouncedInputStudentDetails("");}}>Clear</Button>
               </div>
             </div>
 
